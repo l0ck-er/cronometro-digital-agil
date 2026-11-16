@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cronómetro Digital — Proyecto Ágil</title>
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --card: #ffffff;
+      --text: #1e2022;
+      --muted: #6c727a;
+      --border: #e2dfd7;
+      --accent: #d97706;
+      --accent-hover: #b45309;
+      --success: #15803d;
+      --danger: #b91c1c;
+      --secondary: #e5e2da;
+    }
+
+    body.dark {
+      --bg: #121417;
+      --card: #1b1e23;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --border: #2c313a;
+      --accent: #f59e0b;
+      --accent-hover: #d97706;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --secondary: #2a2f38;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      transition: background 0.25s, color 0.25s;
+    }
+
+    .container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 460px;
+      padding: 28px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--secondary);
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .theme-btn {
+      background: var(--secondary);
+      color: var(--text);
+      border: none;
+      padding: 7px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .display-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 26px 16px;
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .time {
+      font-size: 2.85rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+    }
+
+    .ms {
+      font-size: 1.65rem;
+      color: var(--accent);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    button.ctrl {
+      padding: 13px 10px;
+      border: none;
+      border-radius: 11px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    button.ctrl:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    button.ctrl:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    #btnStartPause {
+      background: var(--success);
+      color: #fff;
+    }
+
+    #btnStartPause.running {
+      background: var(--accent);
+    }
+
+    #btnLap {
+      background: var(--secondary);
+      color: var(--text);
+    }
+
+    #btnReset {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .laps-section h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .laps-list {
+      max-height: 210px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .lap-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .lap-item:last-child {
+      border-bottom: none;
+    }
+
+    .lap-num {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .lap-parcial {
+      color: var(--muted);
+    }
+
+    .empty-msg {
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body class="dark">
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Cronómetro Digital</h1>
+        <span class="badge">MVP Ágil · Date.now()</span>
+      </div>
+      <button class="theme-btn" id="btnTheme">☀️ Modo Claro</button>
+    </div>
+
+    <div class="display-box">
+      <div class="time" id="display">00:00:00<span class="ms">.00</span></div>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl" id="btnStartPause">Iniciar</button>
+      <button class="ctrl" id="btnLap" disabled>Vuelta</button>
+      <button class="ctrl" id="btnReset" disabled>Reiniciar</button>
+    </div>
+
+    <div class="laps-section">
+      <h2>
+        <span>Historial de Vueltas</span>
+        <span id="lapCount">0 vueltas</span>
+      </h2>
+      <div class="laps-list" id="lapsList">
+        <div class="empty-msg">Presiona "Iniciar" y luego "Vuelta" para registrar tiempos.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Variables de estado (HU02, HU03, HU05, HU06)
+    let startTime = 0;
+    let elapsedTime = 0;
+    let timerInterval = null;
+    let isRunning = false;
+    let laps = [];
+    let lastLapTime = 0;
+
+    const display = document.getElementById('display');
+    const btnStartPause = document.getElementById('btnStartPause');
+    const btnLap = document.getElementById('btnLap');
+    const btnReset = document.getElementById('btnReset');
+    const lapsList = document.getElementById('lapsList');
+    const lapCount = document.getElementById('lapCount');
+    const btnTheme = document.getElementById('btnTheme');
+
+    // Formateo de tiempo en HH:MM:SS.cc (HU01)
+    function formatTime(ms) {
+      const totalCentiseconds = Math.floor(ms / 10);
+      const cs = String(totalCentiseconds % 100).padStart(2, '0');
+      const totalSeconds = Math.floor(ms / 1000);
+      const sec = String(totalSeconds % 60).padStart(2, '0');
+      const totalMinutes = Math.floor(totalSeconds / 60);
+      const min = String(totalMinutes % 60).padStart(2, '0');
+      const hrs = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+      return { main: `${hrs}:${min}:${sec}`, cs: `.${cs}` };
+    }
+
+    function updateDisplay() {
+      const now = Date.now();
+      const currentElapsed = elapsedTime + (now - startTime);
+      const formatted = formatTime(currentElapsed);
+      display.innerHTML = `${formatted.main}<span class="ms">${formatted.cs}</span>`;
+    }
+
+    // Iniciar / Pausar (HU02 y HU03)
+    btnStartPause.addEventListener('click', () => {
+      if (!isRunning) {
+        startTime = Date.now();
+        timerInterval = setInterval(updateDisplay, 10);
+        isRunning = true;
+
+        btnStartPause.textContent = 'Pausar';
+        btnStartPause.classList.add('running');
+        btnLap.disabled = false;
+        btnReset.disabled = true; // Bloqueo de estado inválido (HU06)
+      } else {
+        clearInterval(timerInterval);
+        elapsedTime += Date.now() - startTime;
+        isRunning = false;
+
+        btnStartPause.textContent = 'Reanudar';
+        btnStartPause.classList.remove('running');
+        btnLap.disabled = true;
+        btnReset.disabled = false;
+      }
+    });
+
+    // Registrar Vuelta / Lap con diferencia parcial (HU05)
+    btnLap.addEventListener('click', () => {
+      if (!isRunning) return;
+      const totalNow = elapsedTime + (Date.now() - startTime);
+      const partial = totalNow - lastLapTime;
+      lastLapTime = totalNow;
+
+      laps.unshift({
+        number: laps.length + 1,
+        partial: formatTime(partial),
+        total: formatTime(totalNow)
+      });
+
+      renderLaps();
+    });
+
+    // Reiniciar a cero (HU04)
+    btnReset.addEventListener('click', () => {
+      if (isRunning) return;
+      elapsedTime = 0;
+      lastLapTime = 0;
+      laps = [];
+      display.innerHTML = `00:00:00<span class="ms">.00</span>`;
+      btnStartPause.textContent = 'Iniciar';
+      btnReset.disabled = true;
+      btnLap.disabled = true;
+      renderLaps();
+    });
+
+    function renderLaps() {
+      lapCount.textContent = `${laps.length} ${laps.length === 1 ? 'vuelta' : 'vueltas'}`;
+      if (laps.length === 0) {
+        lapsList.innerHTML = '<div class="empty-msg">Presiona "Iniciar" y luego "Vuelta" para registrar tiempos.</div>';
+        return;
+      }
+
+      lapsList.innerHTML = laps.map(lap => `
+        <div class="lap-item">
+          <span class="lap-num">#${lap.number}</span>
+          <span class="lap-parcial">+${lap.partial.main}${lap.partial.cs}</span>
+          <span>${lap.total.main}${lap.total.cs}</span>
+        </div>
+      `).join('');
+    }
+
+    // Modo Oscuro / Claro (HU07)
+    btnTheme.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      const isDark = document.body.classList.contains('dark');
+      btnTheme.textContent = isDark ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
+    });
+  </script>
+</body>
+</html>
